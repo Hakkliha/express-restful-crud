@@ -47,8 +47,7 @@ exports.create = (req, res) => {
         // Validate lastMaintenanceDate is date
         try {
             req.body.lastMaintenanceDate = new Date(req.body.lastMaintenanceDate);
-        }
-        catch {
+        } catch {
             res.status(400).send({
                 message: "Last Maintenance Date must be a date!"
             });
@@ -90,8 +89,7 @@ exports.create = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-            message:
-                err.message || "Some error occurred while creating the Device."
+                message: err.message || "Some error occurred while creating the Device."
             });
         });
 };
@@ -99,16 +97,15 @@ exports.create = (req, res) => {
 // Retrieve all Devices from the database.
 exports.findAll = (req, res) => {
     const name = req.query.name;
-    var condition = name ? { name: { [Op.like]: `%${name}%` } } : null;
+    var condition = name ? {name: {[Op.like]: `%${name}%`}} : null;
 
-    Device.findAll({ where: condition })
+    Device.findAll({where: condition})
         .then(data => {
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
-            message:
-                err.message || "Some error occurred while retrieving devices."
+                message: err.message || "Some error occurred while retrieving devices."
             });
         });
 };
@@ -121,8 +118,7 @@ exports.findOne = (req, res) => {
 
     try {
         const tmp = parseInt(id);
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).send({
             message: "Id must be an integer!"
         });
@@ -141,7 +137,7 @@ exports.findOne = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-            message: "Error retrieving Device with id=" + id
+                message: "Error retrieving Device with id=" + id
             });
         });
 
@@ -154,8 +150,7 @@ exports.update = (req, res) => {
     // Validate id is integer
     try {
         const tmp = parseInt(id);
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).send({
             message: "Id must be an integer!"
         });
@@ -205,8 +200,7 @@ exports.update = (req, res) => {
         // Validate lastMaintenanceDate is date
         try {
             req.body.lastMaintenanceDate = new Date(req.body.lastMaintenanceDate);
-        }
-        catch {
+        } catch {
             res.status(400).send({
                 message: "Last Maintenance Date must be a date!"
             });
@@ -234,22 +228,22 @@ exports.update = (req, res) => {
     }
 
     Device.update(req.body, {
-        where: { id: id }
+        where: {id: id}
     })
         .then(num => {
             if (num == 1) {
                 res.send({
-                message: "Device was updated successfully."
+                    message: "Device was updated successfully."
                 });
             } else {
                 res.send({
-                message: `Cannot update Device with id=${id}. Maybe Device was not found or req.body is empty!`
+                    message: `Cannot update Device with id=${id}. Maybe Device was not found or req.body is empty!`
                 });
             }
         })
         .catch(err => {
             res.status(500).send({
-            message: "Error updating Device with id=" + id
+                message: "Error updating Device with id=" + id
             });
         });
 
@@ -262,8 +256,7 @@ exports.delete = (req, res) => {
     // Validate id is integer
     try {
         const tmp = parseInt(id);
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).send({
             message: "Id must be an integer!"
         });
@@ -271,22 +264,22 @@ exports.delete = (req, res) => {
     }
 
     Device.destroy({
-        where: { id: id }
+        where: {id: id}
     })
         .then(num => {
             if (num == 1) {
                 res.send({
-                message: "Device was deleted successfully!"
+                    message: "Device was deleted successfully!"
                 });
             } else {
                 res.send({
-                message: `Cannot delete Device with id=${id}. Maybe Device was not found!`
+                    message: `Cannot delete Device with id=${id}. Maybe Device was not found!`
                 });
             }
         })
         .catch(err => {
             res.status(500).send({
-            message: "Could not delete Device with id=" + id
+                message: "Could not delete Device with id=" + id
             });
         });
 
@@ -295,16 +288,63 @@ exports.delete = (req, res) => {
 // Delete all Devices from the database.
 exports.deleteAll = (req, res) => {
     Device.destroy({
-        where: {},
-        truncate: false
+        where: {}, truncate: false
     })
         .then(nums => {
-            res.send({ message: `${nums} Devices were deleted successfully!` });
+            res.send({message: `${nums} Devices were deleted successfully!`});
         })
         .catch(err => {
             res.status(500).send({
-            message:
-                err.message || "Some error occurred while removing all devices."
+                message: err.message || "Some error occurred while removing all devices."
             });
         });
 };
+
+// Maintenance Reminder
+
+exports.reminder = (req, res) => {
+    let daysUntilDue = req.body.daysUntilDue;
+
+    if (!daysUntilDue) {
+        daysUntilDue = 14;
+    }
+
+    // Validate daysUntilDue is integer
+    try {
+        const tmp = parseInt(daysUntilDue);
+    } catch (err) {
+        res.status(400).send({
+            message: "Days Until Due must be an integer!"
+        });
+        return;
+    }
+
+    // Get all devices due for maintenance
+    Device.findAll()
+        .then(data => {
+            let devices = [];
+            data.forEach(device => {
+                let nextMaintenanceDate = calculateNextMaintenanceDate(device.lastMaintenanceDate, device.maintenanceFrequency);
+                let today = new Date();
+                // account for daysUntilDue: add daysUntilDue to today's date
+                today.setDate(today.getDate() + daysUntilDue);
+                if (today >= nextMaintenanceDate) {
+                    devices.push(device);
+                }
+            });
+            res.send(devices);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Devices."
+            });
+        });
+}
+
+
+function calculateNextMaintenanceDate(lastMaintenanceDate, maintenanceFrequency) {
+    let nextMaintenanceDate = new Date(lastMaintenanceDate);
+    // maintenanceFrequency is in days
+    nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + maintenanceFrequency);
+    return nextMaintenanceDate;
+}

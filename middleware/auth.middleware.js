@@ -15,7 +15,7 @@ const authenticateToken = (req, res, next) => {
         jwt.verify(bearerToken, config.JWT_SECRET, (err, authData) => {
             if (err) {
                 // If token is not valid or expired
-                return res.status(403).json({ message: 'Forbidden' });
+                return res.status(403).json({message: 'Forbidden'});
             } else {
                 // Token is valid
                 req.user = authData;
@@ -24,7 +24,7 @@ const authenticateToken = (req, res, next) => {
         });
     } else {
         // Forbidden if no token
-        res.status(401).json({ message: 'Unauthorized' });
+        res.status(401).json({message: 'Unauthorized'});
     }
 };
 

@@ -2,7 +2,7 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const {User} = require('../models');
 const config = require('../config/config');
 
 const authController = {
@@ -21,7 +21,7 @@ const authController = {
 
     login: async (req, res) => {
         try {
-            const user = await User.findOne({ where: { username: req.body.username } });
+            const user = await User.findOne({where: {username: req.body.username}});
             if (!user) {
                 return res.status(400).send('User not found');
             }
@@ -31,8 +31,8 @@ const authController = {
                 return res.status(400).send('Incorrect password');
             }
 
-            const token = jwt.sign({ id: user.id }, config.JWT_SECRET, { expiresIn: '1h' }); // Replace 'secret_key' with a real secret key
-            res.send({ user, token });
+            const token = jwt.sign({id: user.id}, config.JWT_SECRET, {expiresIn: '1h'}); // Replace 'secret_key' with a real secret key
+            res.send({user, token});
         } catch (error) {
             res.status(500).send(error);
         }

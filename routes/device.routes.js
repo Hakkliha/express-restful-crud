@@ -12,6 +12,8 @@ module.exports = app => {
     // Retrieve all Devices
     // router.get("/", devices.findAll);
     router.get("/", authenticateToken, devices.findAll);
+    // Retrieve reminders
+    router.get("/reminders", authenticateToken, devices.reminder);
 
     // Retrieve a single Device with id
     // router.get("/:id", devices.findOne);
