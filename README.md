@@ -2,6 +2,12 @@
 
 This is a demo API for a job test.
 
+## Requirements
+
+- Git
+- Node.js
+- PostgreSQL
+
 ## Installation
 
 ```bash
