@@ -1,11 +1,13 @@
 {
   "name": "express-demo",
   "version": "1.0.0",
-  "description": "Sample project to demo API development using express node and mongodb.",
+  "description": "Sample project to demo API development using express node and postgres.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "migrations": "sequelize db:migrate"
   },
   "author": "Lorenz Ernits",
   "license": "ISC",

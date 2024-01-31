@@ -1,21 +1,26 @@
+"use strict";
+// models/device.model.js
+
 module.exports = (sequelize, Sequelize) => {
-const Device = sequelize.define("Device", {
+    return sequelize.define("Device", {
         name: {
-            type: Sequelize.STRING
-        },
-        type: {
-            type: Sequelize.STRING
-        },
-        lastMaintenanceDate: {
-            type: Sequelize.DATE
-        },
-        maintenanceFrequency: {
-            type: Sequelize.INTEGER
+            type: Sequelize.STRING, allowNull: false, validate: {
+                notEmpty: true, len: [2, 100],
+            }
+        }, type: {
+            type: Sequelize.STRING, allowNull: false, validate: {
+                notEmpty: true, len: [2, 100],
+            }
+        }, lastMaintenanceDate: {
+            type: Sequelize.DATE, allowNull: false, validate: {
+                notEmpty: true, isDate: true,
+            }
+        }, maintenanceFrequency: {
+            type: Sequelize.INTEGER, allowNull: false, validate: {
+                notEmpty: true, isInt: true,
+            }
         }
     }, {
-        timestamps: true,
-        paranoid: true
+        timestamps: true, paranoid: true
     });
-
-    return Device;
 };

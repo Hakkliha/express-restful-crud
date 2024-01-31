@@ -1,30 +1,34 @@
-// middleware/authMiddleware.js
+"use strict";
+// middleware/auth.middleware.js
 
-const jwt = require('jsonwebtoken');
-const config = require('../config/config.js');
+const jwt = require("jsonwebtoken");
+const {UnauthorizedError, ForbiddenError} = require("../handlers");
 
 const authenticateToken = (req, res, next) => {
-    const bearerHeader = req.headers['authorization'];
+    try {
+        const bearerHeader = req.headers["authorization"];
 
-    // Check if bearer is undefined
-    if (typeof bearerHeader !== 'undefined') {
-        // Split at the space to separate "Bearer" from the "<token>"
-        const bearerToken = bearerHeader.split(' ')[1];
+        // Check if bearer is undefined
+        if (typeof bearerHeader !== "undefined") {
+            // Split at the space to separate "Bearer" from the "<token>"
+            const bearerToken = bearerHeader.split(" ")[1];
 
-        // Verify the token
-        jwt.verify(bearerToken, config.JWT_SECRET, (err, authData) => {
-            if (err) {
-                // If token is not valid or expired
-                return res.status(403).json({message: 'Forbidden'});
-            } else {
-                // Token is valid
-                req.user = authData;
-                next();
-            }
-        });
-    } else {
-        // Forbidden if no token
-        res.status(401).json({message: 'Unauthorized'});
+            // Verify the token
+            jwt.verify(bearerToken, process.env.JWT_SECRET, (err, authData) => {
+                if (err) {
+                    // If token is not valid or expired
+                    throw new ForbiddenError(["You are forbidden to access this resource"]);
+                } else {
+                    // Token is valid
+                    req.user = authData;
+                    next();
+                }
+            });
+        } else {
+            throw new UnauthorizedError(["You are not authorized to access this resource"]);
+        }
+    } catch (error) {
+        next(error);
     }
 };
 

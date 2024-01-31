@@ -1,41 +1,58 @@
+"use strict";
+// server.js
+
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
+const deviceRoutes = require("./routes/device.routes");
+const authRoutes = require("./routes/auth.routes");
 const app = express();
+const db = require("./models");
+const errorHandler = require("./middleware/error.middleware");
 
-var corsOptions = {
-    origin: "http://localhost:3000"
+
+const getOriginURI = () => {
+    if (process.env.NODE_ENV === "production") {
+        return `${process.env.PROTOCOL}://${process.env.HOST}`;
+    } else {
+        return "http://localhost:3000";
+    }
+}
+
+const corsOptions = {
+    origin: getOriginURI()
 };
 
 app.use(cors(corsOptions));
+
 
 // parse requests of content-type - application/json
 app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 
-// // simple route
+// simple route
 app.get("/", (req, res) => {
-    res.json({ message: "Welcome to the device application." });
+    res.json({message: "Welcome to the device application."});
 });
 
-const db = require('./models'); // Import the database model
-db.sequelize.sync()
-    .then(() => {
+async function syncDatabase() {
+    try {
+        await db.sequelize.sync();
         console.log("Synced db.");
-    })
-    .catch((err) => {
+    } catch (err) {
         console.log("Failed to sync db: " + err.message);
-    });
+    }
+}
 
-// Import the device routes
-require("./routes/device.routes")(app);
+syncDatabase();
 
-// Import the auth routes
-const authRoutes = require('./routes/auth.routes');
-app.use('/api/auth', authRoutes);
+app.use("/api/", deviceRoutes);
 
+app.use("/api/auth", authRoutes);
+
+app.use(errorHandler);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 3000;
